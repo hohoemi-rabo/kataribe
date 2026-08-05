@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useCaptureContext } from "@/lib/capture/capture-context";
-import { cropCanvas } from "@/lib/capture/region";
+import { cropCanvas, type RelativeRect } from "@/lib/capture/region";
 import { formatDateTimeJa } from "@/lib/format";
 import type { Preset } from "@/lib/presets/queries";
 import { createSection } from "@/lib/sections/actions";
@@ -28,6 +28,9 @@ type MainScreenProps = {
   presets: Preset[];
 };
 
+/** 手動読み取り中を表す readingPresetId（preset の id は uuid なので衝突しない） */
+export const MANUAL_READ_ID = "manual";
+
 export function MainScreen({ gameId, presets }: MainScreenProps) {
   const { captureFrame } = useCaptureContext();
   const [readingPresetId, setReadingPresetId] = useState<string | null>(null);
@@ -35,15 +38,17 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const handleRead = async (preset: Preset) => {
-    if (readingPresetId) return;
+  /** 読み取りの共通コア（プリセット / 手動どちらもここに合流する） */
+  const runRead = async (
+    readingId: string,
+    presetName: string,
+    cropped: HTMLCanvasElement,
+  ) => {
     setError(null);
     setNotice(null);
-    setReadingPresetId(preset.id);
+    setReadingPresetId(readingId);
 
     try {
-      const frame = captureFrame();
-      const cropped = cropCanvas(frame, preset);
       const imageDataUrl = cropped.toDataURL(
         "image/jpeg",
         SECTION_IMAGE_JPEG_QUALITY,
@@ -52,7 +57,7 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
       // テキスト先出し: テキスト化が終わった時点でまず表示（TTS を待たせない方針の土台）
       const text = await transcribeImage(cropped);
       setLatest({
-        presetName: preset.name,
+        presetName,
         content: text,
         imageDataUrl,
         seq: null,
@@ -71,7 +76,7 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
         );
       }
 
-      const result = await createSection(gameId, preset.name, text, imagePath);
+      const result = await createSection(gameId, presetName, text, imagePath);
       if (result.error || !result.section) {
         setError(result.error ?? "セクションの保存に失敗しました。");
         return;
@@ -85,6 +90,25 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
     }
   };
 
+  const handleRead = (preset: Preset) => {
+    if (readingPresetId) return;
+    try {
+      const frame = captureFrame();
+      void runRead(preset.id, preset.name, cropCanvas(frame, preset));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "読み取りに失敗しました。");
+    }
+  };
+
+  const handleManualRead = (frame: HTMLCanvasElement, rect: RelativeRect) => {
+    if (readingPresetId) return;
+    try {
+      void runRead(MANUAL_READ_ID, "manual", cropCanvas(frame, rect));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "読み取りに失敗しました。");
+    }
+  };
+
   return (
     <div className="flex flex-col gap-lg">
       <div className="grid items-start gap-lg lg:grid-cols-[3fr_2fr]">
@@ -93,6 +117,7 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
           gameId={gameId}
           presets={presets}
           onRead={handleRead}
+          onManualRead={handleManualRead}
           readingPresetId={readingPresetId}
         />
       </div>
