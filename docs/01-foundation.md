@@ -17,7 +17,7 @@ Supabase 接続・Google OAuth・allowlist・デザイン基盤（トークン /
 
 ### 認証
 
-- [ ] Google Cloud Console で OAuth クライアント作成、Supabase Auth に Google プロバイダ設定
+- [x] Google Cloud Console で OAuth クライアント作成、Supabase Auth に Google プロバイダ設定
 - [x] Google ログイン実装(`/login` → OAuth → コールバック)
 - [x] **allowlist**: 環境変数 `ALLOWED_EMAILS` に一致しないアカウントはログイン後に強制サインアウト + 拒否メッセージ表示
 - [x] ログアウト機能
@@ -33,9 +33,9 @@ Supabase 接続・Google OAuth・allowlist・デザイン基盤（トークン /
 
 ### 動作確認
 
-- [ ] 許可メールアドレスの Google アカウントでログイン → メイン画面に到達できる
-- [ ] 許可外アカウントは弾かれ、拒否メッセージが表示される
-- [ ] 未ログインでメイン画面 URL に直接アクセス → `/login` へリダイレクト
+- [x] 許可メールアドレスの Google アカウントでログイン → メイン画面に到達できる
+- [x] 許可外アカウントは弾かれ、拒否メッセージが表示される
+- [x] 未ログインでメイン画面 URL に直接アクセス → `/login` へリダイレクト
 
 ## メモ
 
