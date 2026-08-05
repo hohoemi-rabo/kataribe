@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="16" fill="#000000" />
+  <text
+    x="30"
+    y="44"
+    text-anchor="middle"
+    font-family="'Noto Sans JP', 'Hiragino Sans', 'Helvetica Neue', sans-serif"
+    font-size="36"
+    font-weight="300"
+    fill="#ffffff"
+  >K</text>
+  <circle cx="48" cy="48" r="6" fill="#0070d1" />
+</svg>
