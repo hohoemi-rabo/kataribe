@@ -1,5 +1,6 @@
 import { verifyRequest } from "./auth";
 import { handleTranscribe, jsonError } from "./transcribe";
+import { handleTts } from "./tts";
 import type { Env } from "./types";
 
 function corsHeaders(env: Env): Record<string, string> {
@@ -36,6 +37,9 @@ export default {
     const url = new URL(request.url);
     if (request.method === "POST" && url.pathname === "/transcribe") {
       return withCors(await handleTranscribe(request, env), env);
+    }
+    if (request.method === "POST" && url.pathname === "/tts") {
+      return withCors(await handleTts(request, env), env);
     }
 
     return withCors(jsonError(404, "Not Found"), env);

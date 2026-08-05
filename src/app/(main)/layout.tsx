@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { Header } from "@/components/header";
+import { PlayerBar } from "@/components/player-bar";
 import { CaptureProvider } from "@/lib/capture/capture-context";
+import { PlayerProvider } from "@/lib/player/player-context";
 import { getGames, getSelectedGame } from "@/lib/games/queries";
 import { createClient } from "@/lib/supabase/server";
 
@@ -33,9 +35,12 @@ export default async function MainLayout({
         selectedGameId={selectedGame?.id ?? null}
       />
       <CaptureProvider>
-        <main className="mx-auto w-full max-w-[1280px] px-lg py-xl">
-          {children}
-        </main>
+        <PlayerProvider>
+          <main className="mx-auto w-full max-w-[1280px] px-lg py-xl pb-section">
+            {children}
+          </main>
+          <PlayerBar />
+        </PlayerProvider>
       </CaptureProvider>
     </>
   );

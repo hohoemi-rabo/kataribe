@@ -11,19 +11,19 @@
 
 ### POST /tts（Worker）
 
-- [ ] Gemini TTS の **最新モデル ID を必ず確認**（preview 系のため変動しやすい。実装時点の推奨を調査して定数化）
-- [ ] 朗読向けの落ち着いた日本語ボイスを候補から選定（MVP は固定でよい）
-- [ ] テキスト → Gemini TTS → PCM を **WAV に変換して返す**（Content-Type: audio/wav）
-- [ ] 長文対応: Gemini TTS の入力上限を確認し、必要ならテキスト分割 → 順次生成
+- [x] Gemini TTS の **最新モデル ID を必ず確認**（2026-08 時点の最新 `gemini-3.1-flash-tts-preview` を Interactions API 経由で使用。定数化済み）
+- [x] 朗読向けの落ち着いた日本語ボイスを候補から選定（`Sulafat`(Warm) を採用。代替候補をコードコメントに記載。朗読スタイル指示文も固定付与）
+- [x] テキスト → Gemini TTS → PCM を **WAV に変換して返す**（24kHz/16bit/mono の RIFF ヘッダ付与、Content-Type: audio/wav）
+- [x] 長文対応: Gemini TTS の入力上限を確認し、必要ならテキスト分割 → 順次生成（上限は 32k トークンと確認 → 想定文字数では分割不要。16,000字の安全ガードのみ実装）
 
 ### フロント: 再生
 
-- [ ] Worker から受け取った WAV を `Audio` / `AudioContext` で再生
-- [ ] player-bar（bg surface-elevated / rounded-full / height 64px / 画面下部固定）: 再生・一時停止・停止の icon-button 3つ + 現在の読み上げ対象名（caption-md）
-- [ ] セクションのテキスト化直後に **自動再生**（チケット05のフローに接続。テキスト表示 → TTS 生成 → 再生開始で player-bar アクティブ化）
-- [ ] 長文の途中でも一時停止・停止できる
-- [ ] **フォールバック**: Gemini TTS 失敗時は Web Speech API（`speechSynthesis`、ja-JP ボイス）で読み上げ。player-bar の操作系は共通化する
-- [ ] 音声は保存しない（都度生成）
+- [x] Worker から受け取った WAV を `Audio` / `AudioContext` で再生
+- [x] player-bar（bg surface-elevated / rounded-full / height 64px / 画面下部固定）: 再生・一時停止・停止の icon-button 3つ + 現在の読み上げ対象名（caption-md）
+- [x] セクションのテキスト化直後に **自動再生**（チケット05のフローに接続。テキスト表示 → TTS 生成 → 再生開始で player-bar アクティブ化）
+- [x] 長文の途中でも一時停止・停止できる
+- [x] **フォールバック**: Gemini TTS 失敗時は Web Speech API（`speechSynthesis`、ja-JP ボイス）で読み上げ。player-bar の操作系は共通化する（PlayerContext がエンジン差を吸収）
+- [x] 音声は保存しない（都度生成。Object URL は再生終了時に解放）
 
 ### 動作確認
 

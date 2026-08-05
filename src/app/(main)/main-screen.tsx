@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useCaptureContext } from "@/lib/capture/capture-context";
 import { cropCanvas, type RelativeRect } from "@/lib/capture/region";
+import { usePlayer } from "@/lib/player/player-context";
 import { formatDateTimeJa } from "@/lib/format";
 import type { Preset } from "@/lib/presets/queries";
 import { createSection } from "@/lib/sections/actions";
@@ -33,6 +34,7 @@ export const MANUAL_READ_ID = "manual";
 
 export function MainScreen({ gameId, presets }: MainScreenProps) {
   const { captureFrame } = useCaptureContext();
+  const { play } = usePlayer();
   const [readingPresetId, setReadingPresetId] = useState<string | null>(null);
   const [latest, setLatest] = useState<LatestResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
         SECTION_IMAGE_JPEG_QUALITY,
       );
 
-      // テキスト先出し: テキスト化が終わった時点でまず表示（TTS を待たせない方針の土台）
+      // テキスト先出し: テキスト化が終わった時点でまず表示し、TTS 生成・保存は並行で進める
       const text = await transcribeImage(cropped);
       setLatest({
         presetName,
@@ -63,6 +65,9 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
         seq: null,
         createdAt: new Date().toISOString(),
       });
+
+      // テキスト化直後の自動再生（REQUIREMENTS §3.5 ①）
+      void play(presetName === "manual" ? "手動範囲" : presetName, text);
 
       // 画像保存は失敗してもテキストを失わない（image_path: null で退避保存）
       let imagePath: string | null = null;
