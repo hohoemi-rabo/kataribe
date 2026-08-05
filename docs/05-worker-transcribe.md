@@ -13,7 +13,7 @@ Cloudflare Worker を立ち上げ、切り抜き画像 → テキスト化（Gem
 
 - [x] `worker/` ディレクトリに Cloudflare Workers プロジェクトを作成（wrangler + TypeScript）
 - [x] Supabase JWT 検証ミドルウェア（`Authorization: Bearer` を検証。失敗は 401。jose + JWKS（ES256）方式 + email allowlist 照合）
-- [ ] Gemini API キーを Worker の環境変数（secret）に設定。**フロントに一切出さない**
+- [x] Gemini API キーを Worker の環境変数（secret）に設定。**フロントに一切出さない**（デプロイ済み: https://kataribe-worker.rabo-hohoemi.workers.dev）
 - [x] CORS 設定（アプリのオリジンのみ許可）
 
 ### POST /transcribe
@@ -35,8 +35,8 @@ Cloudflare Worker を立ち上げ、切り抜き画像 → テキスト化（Gem
 
 ### 動作確認
 
-- [ ] 実ゲーム画面のジャーナルを読ませて、本文だけが書き起こされる（UI 文字列が混入しない）
-- [ ] セクションが連番で保存され、Storage にサムネ画像が入る
+- [x] 実ゲーム画面のジャーナルを読ませて、本文だけが書き起こされる（UI 文字列が混入しない）
+- [x] セクションが連番で保存され、Storage にサムネ画像が入る（SQL で確認: seq 連番 + storage.objects に本人フォルダ配下の JPEG）
 - [x] JWT なし・不正 JWT で Worker が 401 を返す（wrangler dev + curl で確認済み。CORS プリフライトも許可オリジンのみ返答）
 
 ## メモ
