@@ -1,43 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { useCapture } from "@/hooks/use-capture";
-
-type TestFrame = {
-  dataUrl: string;
-  width: number;
-  height: number;
-};
+import { useEffect, useRef } from "react";
+import { useCaptureContext } from "@/lib/capture/capture-context";
 
 export function CapturePanel() {
-  const { videoRef, state, error, startCapture, stopCapture, captureFrame } =
-    useCapture();
-  const [testFrame, setTestFrame] = useState<TestFrame | null>(null);
-  const [frameError, setFrameError] = useState<string | null>(null);
-
+  const { state, error, stream, startCapture, stopCapture } =
+    useCaptureContext();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const isCapturing = state === "capturing";
 
-  const handleStop = () => {
-    stopCapture();
-    setTestFrame(null);
-    setFrameError(null);
-  };
-
-  const handleTestCapture = () => {
-    setFrameError(null);
-    try {
-      const canvas = captureFrame();
-      setTestFrame({
-        dataUrl: canvas.toDataURL("image/png"),
-        width: canvas.width,
-        height: canvas.height,
-      });
-    } catch (err) {
-      setFrameError(
-        err instanceof Error ? err.message : "フレームの取得に失敗しました。",
-      );
+  // プロバイダが保持するストリームをプレビュー用 video にアタッチ
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (stream) {
+      video.srcObject = stream;
+      // 表示専用の play()。直後のアンマウント等で起きる AbortError は無害
+      video.play().catch(() => {});
+    } else {
+      video.srcObject = null;
     }
-  };
+  }, [stream]);
 
   return (
     <div className="flex flex-col gap-sm">
@@ -79,39 +62,11 @@ export function CapturePanel() {
         <div className="flex items-center gap-sm">
           <button
             type="button"
-            onClick={handleStop}
+            onClick={stopCapture}
             className="h-12 rounded-full border border-hairline-dark px-lg text-button-md text-on-dark transition-colors hover:border-hover-cyan hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             キャプチャ停止
           </button>
-          <button
-            type="button"
-            onClick={handleTestCapture}
-            className="h-12 rounded-full border border-hairline-dark px-lg text-button-md text-on-dark transition-colors hover:border-hover-cyan hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            フレーム取得テスト
-          </button>
-        </div>
-      )}
-
-      {frameError && (
-        <p role="alert" className="text-caption-md text-warning">
-          {frameError}
-        </p>
-      )}
-
-      {testFrame && (
-        <div className="flex flex-col gap-xs">
-          <p className="text-caption-md text-mute-dark">
-            取得フレーム（開発確認用） — 実解像度 {testFrame.width}×
-            {testFrame.height}
-          </p>
-          {/* eslint-disable-next-line @next/next/no-img-element -- 開発確認用の data URL 表示。チケット04で削除 */}
-          <img
-            src={testFrame.dataUrl}
-            alt="取得したフレーム"
-            className="w-full rounded-md"
-          />
         </div>
       )}
     </div>
