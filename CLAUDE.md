@@ -38,9 +38,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev     # 開発サーバー起動（Turbopack）
 npm run build   # 本番ビルド（Turbopack）
 npm run lint    # ESLint
+
+# Cloudflare Worker（worker/ は独立プロジェクト。アプリの tsconfig / eslint からは除外済み）
+cd worker && npm run typecheck   # 型チェック
+cd worker && npx wrangler deploy # デプロイ（WSL 側で wrangler ログイン済み）
 ```
 
 テストランナーは未導入。
+
+## 実装済みの基盤（チケット01〜07 完了時点の確定事項）
+
+外部リソース:
+
+- **Supabase プロジェクト**: `kataribe`（ref: `keenlwokwkmixnoczaqh`、ap-northeast-1）。同アカウントに別プロジェクト `labocore` があるため**混同しないこと**
+- **Worker デプロイ済み**: `https://kataribe-worker.rabo-hohoemi.workers.dev`（`NEXT_PUBLIC_WORKER_URL`）。secret `GEMINI_API_KEY` 設定済み。ローカル実行時は `worker/.dev.vars`
+- **Gemini モデル（2026-08 に最新確認済み）**: transcribe = `gemini-3.6-flash`（generateContent）/ TTS = `gemini-3.1-flash-tts-preview`（**Interactions API** 経由、ボイス `Sulafat`、PCM→WAV 変換は `worker/src/tts.ts`）
+- **Storage**: 非公開バケット `sections`（パス `<user_id>/<uuid>.jpg`、本人フォルダのみのポリシー）
+
+実装パターン（勝手に別方式へ変えない）:
+
+- **Worker 認証**: jose + リモート JWKS（ES256）+ `ALLOWED_EMAILS` 照合（`worker/src/auth.ts`）。CORS は `ALLOWED_ORIGIN`（現在 localhost:3000）のみ
+- **選択中ゲーム**: cookie `kataribe-selected-game` + Server Action 方式（localStorage は不採用）。解決は `src/lib/games/queries.ts` の `getSelectedGame()`（cache 済み）
+- **キャプチャ状態**: `CaptureProvider`（`(main)/layout.tsx` 直下・DOM 外 video 保持）。ページ遷移してもストリーム維持
+- **再生状態**: `PlayerProvider` + `PlayerBar`（グローバル・下部固定）。`play(title, text)` が Gemini TTS → Web Speech フォールバックまで内包。チケット08（再読み上げ）・09（あらすじ読み上げ）は `usePlayer().play()` を呼ぶだけでよい
+- **Worker 呼び出し**: `src/lib/worker-client.ts` の `workerFetch(path, body)` を共通利用（JWT 付与込み）
+- **セクション採番**: `src/lib/sections/actions.ts` の `createSection()` が `max(seq)+1` を実施
+- 相対座標変換・切り抜きは `src/lib/capture/region.ts`（`RelativeRect` / `toPixelRect` / `cropCanvas`）
+
+運用メモ:
+
+- TTS の固有名詞誤読（例: 魔神→「まかみ」）は仕様上の限界。**チケット08 のテキスト修正機能で本文を直す**運用（あらすじ生成の材料にもなるため重要）
+- TTS の朗読スタイル指示・ボイスは `worker/src/tts.ts` の定数。変更したら `wrangler deploy` で反映
 
 ## 技術スタックと固定バージョン
 
