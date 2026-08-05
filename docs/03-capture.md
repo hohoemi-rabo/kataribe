@@ -12,16 +12,16 @@
 
 ### キャプチャ制御
 
-- [ ] メイン画面に preview-panel を配置（bg surface-elevated / rounded-md / 16:9。停止中は中央に button-primary「キャプチャ開始」のみ）
-- [ ] 「キャプチャ開始」→ `getDisplayMedia({ video: true })` → ウィンドウ選択 → `<video>` にストリーム保持・ライブプレビュー表示
-- [ ] キャプチャ中バッジ（badge-recording: surface-card 地 + hairline 枠 + recording 色ドットが2秒周期で opacity 点滅）を preview-panel 右上に表示
-- [ ] キャプチャ停止ボタン（ストリームの全トラック stop → 「キャプチャ開始」状態へ戻す）
-- [ ] ストリーム切断（ユーザーが共有停止・ウィンドウを閉じた等）を `track.onended` で検知し「キャプチャ開始」状態へ戻す
-- [ ] タブ再読み込み後は必ず「キャプチャ開始」状態（ストリームは復元不可であることを前提にする）
+- [x] メイン画面に preview-panel を配置（bg surface-elevated / rounded-md / 16:9。停止中は中央に button-primary「キャプチャ開始」のみ）
+- [x] 「キャプチャ開始」→ `getDisplayMedia({ video: true })` → ウィンドウ選択 → `<video>` にストリーム保持・ライブプレビュー表示
+- [x] キャプチャ中バッジ（badge-recording: surface-card 地 + hairline 枠 + recording 色ドットが2秒周期で opacity 点滅）を preview-panel 右上に表示
+- [x] キャプチャ停止ボタン（ストリームの全トラック stop → 「キャプチャ開始」状態へ戻す）
+- [x] ストリーム切断（ユーザーが共有停止・ウィンドウを閉じた等）を `track.onended` で検知し「キャプチャ開始」状態へ戻す
+- [x] タブ再読み込み後は必ず「キャプチャ開始」状態（ストリームは復元不可であることを前提にする）
 
 ### フレーム取得
 
-- [ ] 「その瞬間の1フレーム」を canvas に描画して取得するユーティリティを作成（`video.videoWidth/Height` の実解像度で取得。以降のチケット04〜06で共用）
+- [x] 「その瞬間の1フレーム」を canvas に描画して取得するユーティリティを作成（`video.videoWidth/Height` の実解像度で取得。以降のチケット04〜06で共用）
 
 ### 動作確認（実機）
 

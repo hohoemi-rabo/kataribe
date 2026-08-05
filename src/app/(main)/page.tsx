@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getGames } from "@/lib/games/queries";
+import { CapturePanel } from "./capture-panel";
 
 export default async function HomePage() {
   const games = await getGames();
@@ -21,10 +22,13 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="flex aspect-video w-full max-w-[768px] items-center justify-center rounded-md bg-surface-elevated">
-      <p className="text-body-sm text-mute-dark">
-        キャプチャ画面はチケット03で実装予定
-      </p>
+    <div className="grid gap-lg lg:grid-cols-[3fr_2fr]">
+      <CapturePanel />
+      <div>
+        <p className="text-caption-md text-mute-dark">
+          プリセットボタン（チケット04で実装）
+        </p>
+      </div>
     </div>
   );
 }

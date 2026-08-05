@@ -88,6 +88,16 @@ export default {
         xxl: "48px",
         section: "64px",
       },
+      keyframes: {
+        "recording-blink": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.2" },
+        },
+      },
+      animation: {
+        // キャプチャ中バッジのドット（2秒周期の opacity 点滅）
+        "recording-blink": "recording-blink 2s ease-in-out infinite",
+      },
     },
   },
   plugins: [],
