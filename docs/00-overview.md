@@ -6,7 +6,7 @@ REQUIREMENTS.md §8 の実装チケットを個別ファイルに分割したも
 | # | ファイル | チケット | 状態 |
 |---|---|---|---|
 | 01 | [01-foundation.md](./01-foundation.md) | プロジェクト基盤（Supabase + OAuth + allowlist + デザイン基盤） | 完了 |
-| 02 | [02-db-games.md](./02-db-games.md) | DB・ゲーム管理 | 未着手 |
+| 02 | [02-db-games.md](./02-db-games.md) | DB・ゲーム管理 | 進行中 |
 | 03 | [03-capture.md](./03-capture.md) | 画面キャプチャ | 未着手 |
 | 04 | [04-presets.md](./04-presets.md) | 範囲プリセット | 未着手 |
 | 05 | [05-worker-transcribe.md](./05-worker-transcribe.md) | Worker: transcribe + セクション保存 | 未着手 |

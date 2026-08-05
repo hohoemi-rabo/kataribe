@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { GameSwitcher } from "./game-switcher";
 import { UserMenu } from "./user-menu";
+import type { Game } from "@/lib/games/queries";
 
 const NAV_LINKS = [
   { href: "/", label: "メイン" },
@@ -11,18 +13,21 @@ const NAV_LINKS = [
 type HeaderProps = {
   email: string;
   avatarUrl: string | null;
+  games: Game[];
+  selectedGameId: string | null;
 };
 
-export function Header({ email, avatarUrl }: HeaderProps) {
+export function Header({ email, avatarUrl, games, selectedGameId }: HeaderProps) {
   return (
-    <header className="flex h-14 items-center justify-between bg-canvas px-lg">
+    <header className="grid h-14 grid-cols-[1fr_auto_1fr] items-center bg-canvas px-lg">
       <Link
         href="/"
-        className="text-[18px] font-light leading-tight tracking-wordmark text-on-dark transition-colors hover:text-hover-cyan"
+        className="justify-self-start text-[18px] font-light leading-tight tracking-wordmark text-on-dark transition-colors hover:text-hover-cyan"
       >
         KATARIBE
       </Link>
-      <div className="flex items-center gap-lg">
+      <GameSwitcher games={games} selectedGameId={selectedGameId} />
+      <div className="flex items-center gap-lg justify-self-end">
         <nav className="flex items-center gap-lg">
           {NAV_LINKS.map(({ href, label }) => (
             <Link
