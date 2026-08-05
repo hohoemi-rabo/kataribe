@@ -9,7 +9,7 @@ REQUIREMENTS.md §8 の実装チケットを個別ファイルに分割したも
 | 02 | [02-db-games.md](./02-db-games.md) | DB・ゲーム管理 | 完了 |
 | 03 | [03-capture.md](./03-capture.md) | 画面キャプチャ | 完了 |
 | 04 | [04-presets.md](./04-presets.md) | 範囲プリセット | 完了 |
-| 05 | [05-worker-transcribe.md](./05-worker-transcribe.md) | Worker: transcribe + セクション保存 | 未着手 |
+| 05 | [05-worker-transcribe.md](./05-worker-transcribe.md) | Worker: transcribe + セクション保存 | 進行中 |
 | 06 | [06-manual-region.md](./06-manual-region.md) | 「今回だけ範囲指定」 | 未着手 |
 | 07 | [07-worker-tts.md](./07-worker-tts.md) | Worker: tts + 音声再生 | 未着手 |
 | 08 | [08-sections.md](./08-sections.md) | セクション一覧 | 未着手 |

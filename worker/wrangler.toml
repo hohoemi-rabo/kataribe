@@ -1,0 +1,11 @@
+name = "kataribe-worker"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+
+# secrets（`wrangler secret put` で設定。ローカルは .dev.vars）:
+#   GEMINI_API_KEY
+
+[vars]
+SUPABASE_URL = "https://keenlwokwkmixnoczaqh.supabase.co"
+ALLOWED_EMAILS = "rabo.hohoemi@gmail.com"
+ALLOWED_ORIGIN = "http://localhost:3000"

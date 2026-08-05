@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { getGames, getSelectedGame } from "@/lib/games/queries";
 import { getPresetsByGame } from "@/lib/presets/queries";
-import { CapturePanel } from "./capture-panel";
-import { PresetPanel } from "./preset-panel";
+import { MainScreen } from "./main-screen";
 
 export default async function HomePage() {
   const [games, selectedGame] = await Promise.all([
@@ -28,10 +27,5 @@ export default async function HomePage() {
 
   const presets = await getPresetsByGame(selectedGame.id);
 
-  return (
-    <div className="grid items-start gap-lg lg:grid-cols-[3fr_2fr]">
-      <CapturePanel />
-      <PresetPanel gameId={selectedGame.id} presets={presets} />
-    </div>
-  );
+  return <MainScreen gameId={selectedGame.id} presets={presets} />;
 }

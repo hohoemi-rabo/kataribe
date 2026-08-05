@@ -18,6 +18,8 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      // Cloudflare Worker は独立プロジェクト（worker/tsconfig.json で型検査）
+      "worker/**",
     ],
   },
 ];

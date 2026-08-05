@@ -1,0 +1,2 @@
+# ローカル開発用（.dev.vars にコピーして値を設定。.dev.vars はコミットしない）
+GEMINI_API_KEY=your-gemini-api-key
