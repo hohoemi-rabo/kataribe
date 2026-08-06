@@ -13,24 +13,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **REQUIREMENTS.md** — 機能要件・DB設計・Worker API・実装チケット
 - **DESIGN.md** — デザイン仕様（PlayStation Design System の翻案）。デザイン判断はこちらが常に優先
 
-## セッション開始時の手順
+## 現在のフェーズ: 運用・改善（MVP 完成済み）
 
-1. `docs/00-overview.md` の状態表で現在のチケットを確認する（**進捗の単一情報源はこの表と各チケットの Todo**。会話履歴に頼らない）
-2. 「進行中」のチケットがあればそのファイルを読み、未完了の Todo（`- [ ]`）から再開する
-3. すべて「未着手」なら `docs/01-foundation.md` から。新しいチケットへの着手はユーザーに一言確認してから始める
+**実装チケット 01〜10 はすべて完了**し、本番稼働中（2026-08 時点）。`docs/00-overview.md` と各チケットファイルは開発時の記録として残している（実装の経緯・設計判断・既知の制限のリファレンス）。
 
-## 開発プロセス（必須）
+今後の変更の進め方:
 
-- 実装チケットは **`docs/` 配下に分割済み**（`docs/00-overview.md` が一覧）。**チケット番号順（01→10）に、1チケットずつ承認を挟んで** 進める。勝手に先のチケットへ進まない
-- 各チケット完了ごとに動作確認 → ユーザー承認 → 次へ
-- チケット03・04・06 は `getDisplayMedia` が自動テスト不可のため、ブラウザ実機確認が必須
-
-### チケットの Todo 管理ルール
-
-- チケット着手時: 該当ファイル（例 `docs/01-foundation.md`）を読み、`docs/00-overview.md` の状態を「進行中」に更新する
-- 各 Todo は完了するたびに `- [ ]` → `- [x]` に更新する（チェックはタスク完了の直後に入れる。まとめて後から入れない）
-- 作業中に判明した追加タスクは、該当チケットの Todo に `- [ ]` で追記してから着手する
-- チケット内の全 Todo が `- [x]` になったら動作確認 → ユーザー承認を得て、`docs/00-overview.md` の状態を「完了」に更新する
+- ユーザーの依頼ベースで小さく進める。**新機能や仕様変更は着手前に一言確認**する（勝手にスコープを広げない）
+- まとまった機能追加になる場合は `docs/11-*.md` 以降としてチケットファイルを作り、従来の Todo 方式（`- [ ]` → 完了直後に `- [x]`、着手/完了時に `docs/00-overview.md` の表を更新）で管理する
+- 軽微な修正はチケット化不要。ただし設計判断・既知の制限に触れる変更は該当 docs のメモ欄か本ファイルに記録する
+- キャプチャ（`getDisplayMedia`）・音声再生に触れる変更は自動テスト不可のため、ブラウザ実機確認 → ユーザー承認を挟む
 
 ## コマンド
 
@@ -43,6 +35,11 @@ npm run lint    # ESLint
 cd worker && npm run typecheck   # 型チェック
 cd worker && npx wrangler deploy # デプロイ（WSL 側で wrangler ログイン済み）
 ```
+
+デプロイ:
+
+- **アプリ（Vercel）**: `git push`（GitHub 連携で main への push が本番自動デプロイ）。CLI からは `vercel deploy --prod`（ログイン済み・プロジェクトリンク済み）
+- **Worker**: `cd worker && npx wrangler deploy`。プロンプト・レート上限・CORS の変更はこれだけで反映される
 
 テストランナーは未導入。
 
@@ -62,15 +59,21 @@ cd worker && npx wrangler deploy # デプロイ（WSL 側で wrangler ログイ�
 - **Worker 認証**: jose + リモート JWKS（ES256）+ `ALLOWED_EMAILS` 照合（`worker/src/auth.ts`）。CORS は `ALLOWED_ORIGIN`（カンマ区切り: localhost:3000 + 本番ドメイン、Origin 完全一致エコー）
 - **選択中ゲーム**: cookie `kataribe-selected-game` + Server Action 方式（localStorage は不採用）。解決は `src/lib/games/queries.ts` の `getSelectedGame()`（cache 済み）
 - **キャプチャ状態**: `CaptureProvider`（`(main)/layout.tsx` 直下・DOM 外 video 保持）。ページ遷移してもストリーム維持
-- **再生状態**: `PlayerProvider` + `PlayerBar`（グローバル・下部固定）。`play(title, text)` が Gemini TTS → Web Speech フォールバックまで内包。チケット08（再読み上げ）・09（あらすじ読み上げ）は `usePlayer().play()` を呼ぶだけでよい
-- **Worker 呼び出し**: `src/lib/worker-client.ts` の `workerFetch(path, body)` を共通利用（JWT 付与込み）
-- **セクション採番**: `src/lib/sections/actions.ts` の `createSection()` が `max(seq)+1` を実施
+- **再生状態**: `PlayerProvider` + `PlayerBar`（グローバル・下部固定）。`play(title, text)` が Gemini TTS → Web Speech フォールバックまで内包し、フォールバック理由（429 等）は `notice` として player-bar に表示される。読み上げが必要な機能は `usePlayer().play()` を呼ぶだけでよい
+- **Worker 呼び出し**: `src/lib/worker-client.ts` の `workerFetch(path, body)` を共通利用（JWT 付与 + 90秒タイムアウト込み）。Worker のエラーは JSON body `{ error }` の日本語メッセージがそのまま画面に出る設計
+- **データ層の規約**: 各機能は `src/lib/<機能>/` に `queries.ts`（React `cache()`・エラー時 throw）+ `actions.ts`（`"use server"`・`{ error?: string }` 返却・throw しない・`.eq("id", x)` のみで RLS 任せ・成功時 `revalidatePath("/", "layout")`）+ 必要なら `client.ts`（Worker 呼び出し）
+- **セクション採番**: `src/lib/sections/actions.ts` の `createSection()` が `max(seq)+1` を実施。削除しても `seq` は振り直さない（欠番許容）
+- **削除確認ダイアログ**: `src/components/confirm-dialog.tsx` を共通利用（ゲーム / プリセット / セクション / あらすじの4箇所）
+- **サムネイル**: 非公開バケットのため server query で `createSignedUrls`（TTL 1時間）を一括発行 + 素の `<img>`（`next/image` 不使用）。署名失敗はプレースホルダ表示で一覧は落とさない
+- **allowlist の失効**: `(main)/layout.tsx` が毎レンダーで `isAllowedEmail` を再チェック → NG は `/auth/denied`（signOut するルートハンドラ）へ
 - 相対座標変換・切り抜きは `src/lib/capture/region.ts`（`RelativeRect` / `toPixelRect` / `cropCanvas`）
 
 運用メモ:
 
-- TTS の固有名詞誤読（例: 魔神→「まかみ」）は仕様上の限界。**チケット08 のテキスト修正機能で本文を直す**運用（あらすじ生成の材料にもなるため重要）
-- TTS の朗読スタイル指示・ボイスは `worker/src/tts.ts` の定数。変更したら `wrangler deploy` で反映
+- TTS の固有名詞誤読（例: 魔神→「まかみ」）は仕様上の限界。**セクション一覧の「編集」で本文を直す**運用（あらすじ生成の材料にもなるため重要）
+- TTS の朗読スタイル指示・ボイスは `worker/src/tts.ts` の定数。変更したら `wrangler deploy` で反映。読み上げ品質の改善はコスト増になるため**ユーザー方針で現状維持**（2026-08 判断: 読んでくれれば十分）
+- 429 の動作確認をしたいときは `wrangler kv key put` で `rl:<email>:<endpoint>:<JST日付>` に上限値を直接書けば即再現できる（確認後は key を削除）
+- **既知の制限（意図的に未対応）**: モーダルのフォーカストラップ・Escape クローズ / キーボードのみでの範囲選択 / nav の aria-current / signOut の pending 表示 / 1024px 未満のヘッダー詰まり（詳細は docs/10-polish.md メモ欄）
 
 ## 技術スタックと固定バージョン
 
