@@ -36,20 +36,41 @@ export function SummaryCardGenerating() {
   );
 }
 
+function DeleteLink({ onDelete }: { onDelete: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onDelete}
+      className="text-caption-md text-warning transition-colors hover:text-hover-cyan"
+    >
+      削除
+    </button>
+  );
+}
+
 type SummaryCardHeroProps = {
   meta: string;
   content: string;
   onPlay: () => void;
+  onDelete?: () => void;
 };
 
-export function SummaryCardHero({ meta, content, onPlay }: SummaryCardHeroProps) {
+export function SummaryCardHero({
+  meta,
+  content,
+  onPlay,
+  onDelete,
+}: SummaryCardHeroProps) {
   return (
     <article className="overflow-hidden rounded-md bg-surface-elevated">
       <div className={GOLD_BAR_STATIC} aria-hidden="true" />
       <div className="flex flex-col gap-lg px-xl py-xxl">
         <div className="flex items-center justify-between gap-md">
           <h2 className="text-heading-xl">ここまでのあらすじ</h2>
-          <PlayButton onPlay={onPlay} />
+          <div className="flex items-center gap-md">
+            <PlayButton onPlay={onPlay} />
+            {onDelete && <DeleteLink onDelete={onDelete} />}
+          </div>
         </div>
         <p className="text-caption-md text-mute-dark">{meta}</p>
         <p className="max-w-[640px] whitespace-pre-wrap text-body-md text-body-dark">
@@ -66,6 +87,7 @@ type SummaryCardCompactProps = {
   expanded: boolean;
   onToggle: () => void;
   onPlay: () => void;
+  onDelete: () => void;
 };
 
 export function SummaryCardCompact({
@@ -74,6 +96,7 @@ export function SummaryCardCompact({
   expanded,
   onToggle,
   onPlay,
+  onDelete,
 }: SummaryCardCompactProps) {
   return (
     <article className="overflow-hidden rounded-md bg-surface-elevated">
@@ -81,7 +104,10 @@ export function SummaryCardCompact({
       <div className="flex flex-col gap-sm p-lg">
         <div className="flex items-center justify-between gap-md">
           <p className="text-caption-md text-mute-dark">{meta}</p>
-          <PlayButton onPlay={onPlay} />
+          <div className="flex items-center gap-md">
+            <PlayButton onPlay={onPlay} />
+            <DeleteLink onDelete={onDelete} />
+          </div>
         </div>
         <button
           type="button"

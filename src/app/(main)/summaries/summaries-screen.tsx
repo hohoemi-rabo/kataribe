@@ -1,10 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { formatDateTimeJa } from "@/lib/format";
 import { usePlayer } from "@/lib/player/player-context";
 import type { SectionText } from "@/lib/sections/queries";
-import { createSummary, type Summary } from "@/lib/summaries/actions";
+import {
+  createSummary,
+  deleteSummary,
+  type Summary,
+} from "@/lib/summaries/actions";
 import { generateSummary } from "@/lib/summaries/client";
 import {
   SummaryCardCompact,
@@ -45,7 +50,10 @@ export function SummariesScreen({
   const [unsaved, setUnsaved] = useState<UnsavedSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Summary | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isRetrying, startRetry] = useTransition();
+  const [isDeleting, startDelete] = useTransition();
 
   const hasSections = sectionTexts.length > 0;
 
@@ -120,6 +128,22 @@ export function SummariesScreen({
         setUnsaved(null);
       } else {
         setError(result.error ?? "あらすじの保存に失敗しました。");
+      }
+    });
+  };
+
+  const handleDelete = () => {
+    if (!deleteTarget || isDeleting) return;
+    setDeleteError(null);
+    startDelete(async () => {
+      const result = await deleteSummary(deleteTarget.id);
+      if (result.error) {
+        setDeleteError(result.error);
+      } else {
+        if (freshSummary?.id === deleteTarget.id) {
+          setFreshSummary(null);
+        }
+        setDeleteTarget(null);
       }
     });
   };
@@ -238,6 +262,10 @@ export function SummariesScreen({
               freshSummary.content,
             )
           }
+          onDelete={() => {
+            setDeleteError(null);
+            setDeleteTarget(freshSummary);
+          }}
         />
       ) : null}
 
@@ -270,12 +298,31 @@ export function SummariesScreen({
                       summary.content,
                     )
                   }
+                  onDelete={() => {
+                    setDeleteError(null);
+                    setDeleteTarget(summary);
+                  }}
                 />
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      {deleteTarget && (
+        <ConfirmDialog
+          titleId="delete-summary-title"
+          title={`${rangeLabel(deleteTarget.from_seq, deleteTarget.to_seq)} のあらすじを削除しますか？`}
+          description={`${formatDateTimeJa(deleteTarget.created_at)} に生成したあらすじを削除します。この操作は取り消せません。`}
+          error={deleteError}
+          isPending={isDeleting}
+          onCancel={() => {
+            setDeleteError(null);
+            setDeleteTarget(null);
+          }}
+          onConfirm={handleDelete}
+        />
+      )}
     </div>
   );
 }

@@ -48,3 +48,15 @@ export async function createSummary(
   revalidatePath("/", "layout");
   return { summary: data };
 }
+
+export async function deleteSummary(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("summaries").delete().eq("id", id);
+
+  if (error) {
+    return { error: "削除に失敗しました。時間をおいて再度お試しください。" };
+  }
+
+  revalidatePath("/", "layout");
+  return {};
+}

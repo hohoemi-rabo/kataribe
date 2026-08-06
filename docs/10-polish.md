@@ -24,6 +24,7 @@
 
 ### 磨き込み
 
+- [x] あらすじの個別削除（履歴・生成直後カードに削除リンク + 共通 ConfirmDialog。`deleteSummary` Server Action）※ユーザー要望による仕様追加
 - [ ] 読み取り中・生成中・再生中の状態表示を DESIGN.md §6 の仕様通りに総点検（スピナー / シマー / player-bar アクティブ化 / badge-recording）
 - [ ] focus-visible リング（2px primary）・ホバー（シアン）の全ボタン適用漏れチェック
 - [ ] 1024px 縦積みレイアウトの確認（DESIGN.md §8）
