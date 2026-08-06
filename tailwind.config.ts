@@ -93,10 +93,16 @@ export default {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.2" },
         },
+        "gold-shimmer": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
       },
       animation: {
         // キャプチャ中バッジのドット（2秒周期の opacity 点滅）
         "recording-blink": "recording-blink 2s ease-in-out infinite",
+        // あらすじ生成中のゴールドバー専用（本アプリ唯一の演出）
+        "gold-shimmer": "gold-shimmer 2.5s ease-in-out infinite",
       },
     },
   },

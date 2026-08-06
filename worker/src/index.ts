@@ -1,4 +1,5 @@
 import { verifyRequest } from "./auth";
+import { handleSummarize } from "./summarize";
 import { handleTranscribe, jsonError } from "./transcribe";
 import { handleTts } from "./tts";
 import type { Env } from "./types";
@@ -37,6 +38,9 @@ export default {
     const url = new URL(request.url);
     if (request.method === "POST" && url.pathname === "/transcribe") {
       return withCors(await handleTranscribe(request, env), env);
+    }
+    if (request.method === "POST" && url.pathname === "/summarize") {
+      return withCors(await handleSummarize(request, env), env);
     }
     if (request.method === "POST" && url.pathname === "/tts") {
       return withCors(await handleTts(request, env), env);

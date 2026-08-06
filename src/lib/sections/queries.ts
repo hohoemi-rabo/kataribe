@@ -4,6 +4,25 @@ import type { Section } from "./actions";
 
 export type SectionWithThumb = Section & { thumbUrl: string | null };
 
+export type SectionText = { seq: number; content: string };
+
+/** あらすじ生成の材料用。サムネイルURLを発行しない軽量版（seq 昇順 = 時系列順） */
+export const getSectionTextsByGame = cache(
+  async (gameId: string): Promise<SectionText[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("sections")
+      .select("seq, content")
+      .eq("game_id", gameId)
+      .order("seq", { ascending: true });
+
+    if (error) {
+      throw new Error(`セクションの取得に失敗しました: ${error.message}`);
+    }
+    return data;
+  },
+);
+
 const SIGNED_URL_TTL_SECONDS = 3600;
 
 export const getSectionsByGame = cache(
