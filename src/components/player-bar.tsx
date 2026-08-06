@@ -2,7 +2,7 @@
 
 import { usePlayer } from "@/lib/player/player-context";
 
-const ICON_BUTTON_CLASS =
+export const ICON_BUTTON_CLASS =
   "flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(255,255,255,0.16)] text-on-dark transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:text-on-dark";
 
 export function PlayerBar() {

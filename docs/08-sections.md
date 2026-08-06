@@ -11,15 +11,15 @@
 
 ### 一覧
 
-- [ ] `/sections` 画面: 画面タイトル display-md「セクション」+ filter-pill（新しい順 / 古い順）
-- [ ] 選択中ゲームのセクションを section-card で1カラム縦積み（gap 16px、ホバーで bg `#1f2024`）
-- [ ] section-card 構成: 左に切り抜き画像サムネ（16:9・rounded-md・Storage から取得）、右に badge-info（#連番）+ caption-md（日時・プリセット名）+ body-md 本文（3行 clamp）
+- [x] `/sections` 画面: 画面タイトル display-md「セクション」+ filter-pill（新しい順 / 古い順）
+- [x] 選択中ゲームのセクションを section-card で1カラム縦積み（gap 16px、ホバーで bg `#1f2024`）
+- [x] section-card 構成: 左に切り抜き画像サムネ（16:9・rounded-md・Storage から取得）、右に badge-info（#連番）+ caption-md（日時・プリセット名）+ body-md 本文（3行 clamp）
 
 ### 操作
 
-- [ ] もう一度読み上げ: icon-button（再生）→ チケット07の player-bar で再生
-- [ ] テキスト編集: 誤認識（固有名詞など）の手直し用。編集フォーム（text-input ベース or textarea）→ `content` を update。**あらすじの材料になるため確実に保存されること**
-- [ ] 削除: テキストリンク（warning 色）+ 確認 → セクション行と Storage の画像を削除
+- [x] もう一度読み上げ: icon-button（再生）→ チケット07の player-bar で再生
+- [x] テキスト編集: 誤認識（固有名詞など）の手直し用。編集フォーム（text-input ベース or textarea）→ `content` を update。**あらすじの材料になるため確実に保存されること**
+- [x] 削除: テキストリンク（warning 色）+ 確認 → セクション行と Storage の画像を削除
 
 ### 動作確認
 
@@ -31,3 +31,6 @@
 
 - セクションが多くなった場合の表示は MVP ではシンプルでよい（まず全件表示。重くなったらページネーションを検討し、判断を記録する）
 - 削除しても既存セクションの `seq` は振り直さない（連番に欠番が出てよい）
+- サムネイルは表示時に署名URL（TTL 1時間）を一括発行。1時間以上開きっぱなしのタブでは画像のみ切れる（リロードで復帰、MVP 許容）。発行失敗時は「画像なし」プレースホルダで一覧表示は継続
+- 削除は Storage 画像 → DB 行の順（途中失敗しても行が残り、再実行で完遂できる冪等設計）
+- 削除確認ダイアログは `src/components/confirm-dialog.tsx` に共通化（設定画面のゲーム削除・プリセット削除も同コンポーネントへ移行済み）

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PresetModal } from "@/components/preset-modal";
 import { useCaptureContext } from "@/lib/capture/capture-context";
 import { formatDateJa } from "@/lib/format";
@@ -188,39 +189,14 @@ export function PresetList({ games, presets }: PresetListProps) {
       )}
 
       {deleteTarget && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-preset-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-lg"
-        >
-          <div className="flex w-full max-w-[480px] flex-col gap-lg rounded-lg bg-surface-elevated p-xl">
-            <h3 id="delete-preset-title" className="text-heading-lg">
-              「{deleteTarget.name}」を削除しますか？
-            </h3>
-            <p className="text-body-sm text-body-dark">
-              このプリセットを削除します。登録済みのセクションには影響しません。
-            </p>
-            <div className="flex justify-end gap-sm">
-              <button
-                type="button"
-                onClick={() => setDeleteTarget(null)}
-                disabled={isPending}
-                className="h-12 rounded-full border border-hairline-dark px-lg text-button-md text-on-dark transition-colors hover:border-hover-cyan hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
-              >
-                キャンセル
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={isPending}
-                className="h-12 rounded-full border border-warning px-lg text-button-md text-warning transition-colors hover:bg-warning hover:text-on-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
-              >
-                {isPending ? "削除中…" : "削除"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          titleId="delete-preset-title"
+          title={`「${deleteTarget.name}」を削除しますか？`}
+          description="このプリセットを削除します。登録済みのセクションには影響しません。"
+          isPending={isPending}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={handleDelete}
+        />
       )}
     </div>
   );

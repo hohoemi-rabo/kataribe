@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { formatDateJa } from "@/lib/format";
 import { deleteGame } from "@/lib/games/actions";
 import type { Game } from "@/lib/games/queries";
@@ -61,44 +62,15 @@ export function GameList({ games }: { games: Game[] }) {
       </ul>
 
       {target && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-game-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-lg"
-        >
-          <div className="flex w-full max-w-[480px] flex-col gap-lg rounded-lg bg-surface-elevated p-xl">
-            <h3 id="delete-game-title" className="text-heading-lg">
-              「{target.title}」を削除しますか？
-            </h3>
-            <p className="text-body-sm text-body-dark">
-              配下のプリセット・セクション・あらすじもすべて削除されます。この操作は取り消せません。
-            </p>
-            {error && (
-              <p role="alert" className="text-caption-md text-warning">
-                {error}
-              </p>
-            )}
-            <div className="flex justify-end gap-sm">
-              <button
-                type="button"
-                onClick={() => setTarget(null)}
-                disabled={isPending}
-                className="h-12 rounded-full border border-hairline-dark px-lg text-button-md text-on-dark transition-colors hover:border-hover-cyan hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
-              >
-                キャンセル
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={isPending}
-                className="h-12 rounded-full border border-warning px-lg text-button-md text-warning transition-colors hover:bg-warning hover:text-on-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
-              >
-                {isPending ? "削除中…" : "削除"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          titleId="delete-game-title"
+          title={`「${target.title}」を削除しますか？`}
+          description="配下のプリセット・セクション・あらすじもすべて削除されます。この操作は取り消せません。"
+          error={error}
+          isPending={isPending}
+          onCancel={() => setTarget(null)}
+          onConfirm={handleDelete}
+        />
       )}
     </>
   );
