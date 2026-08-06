@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Header } from "@/components/header";
 import { PlayerBar } from "@/components/player-bar";
+import { isAllowedEmail } from "@/lib/auth/allowlist";
 import { CaptureProvider } from "@/lib/capture/capture-context";
 import { PlayerProvider } from "@/lib/player/player-context";
 import { getGames, getSelectedGame } from "@/lib/games/queries";
@@ -19,6 +20,12 @@ export default async function MainLayout({
   // middleware が先に弾くが、レイアウト単体でも守る二重の保険
   if (!user) {
     redirect("/login");
+  }
+
+  // allowlist から外した後の既存セッションを失効させる（RSC 中は signOut できないため
+  // ルートハンドラ経由でサインアウト → /login?error=denied へ）
+  if (!isAllowedEmail(user.email)) {
+    redirect("/auth/denied");
   }
 
   const [games, selectedGame] = await Promise.all([

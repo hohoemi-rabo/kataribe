@@ -22,7 +22,7 @@ export const getGames = cache(async (): Promise<Game[]> => {
 });
 
 /** cookie の指すゲームが消えている場合は最新のゲームへフォールバック */
-export function resolveSelectedGame(
+function resolveSelectedGame(
   games: Game[],
   cookieValue: string | undefined,
 ): Game | null {

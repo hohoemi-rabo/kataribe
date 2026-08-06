@@ -5,7 +5,7 @@ import { ICON_BUTTON_CLASS } from "@/components/player-bar";
 // ゴールドは summary-card 専用（DESIGN.md）。ゴールド系クラスはこのファイル以外で使わない
 const GOLD_BAR_STATIC =
   "h-1 w-full bg-gradient-to-r from-gold-start via-gold-mid to-gold-end";
-const GOLD_BAR_SHIMMER = `${GOLD_BAR_STATIC} bg-[length:200%_100%] animate-gold-shimmer`;
+const GOLD_BAR_SHIMMER = `${GOLD_BAR_STATIC} bg-[length:200%_100%] animate-gold-shimmer motion-reduce:animate-none`;
 
 function PlayButton({ onPlay }: { onPlay: () => void }) {
   return (
@@ -41,7 +41,7 @@ function DeleteLink({ onDelete }: { onDelete: () => void }) {
     <button
       type="button"
       onClick={onDelete}
-      className="text-caption-md text-warning transition-colors hover:text-hover-cyan"
+      className="text-caption-md text-warning transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       削除
     </button>

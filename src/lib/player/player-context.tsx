@@ -20,6 +20,8 @@ type PlayerContextValue = {
   title: string | null;
   engine: PlayerEngine | null;
   error: string | null;
+  /** Web Speech フォールバックに切り替わった理由（429・セッション切れ等）。再生は継続する */
+  notice: string | null;
   play: (title: string, text: string) => Promise<void>;
   pause: () => void;
   resume: () => void;
@@ -42,6 +44,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [title, setTitle] = useState<string | null>(null);
   const [engine, setEngine] = useState<PlayerEngine | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const cleanupAudio = useCallback(() => {
     if (audioRef.current) {
@@ -71,6 +74,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     stopInternal();
     resetToIdle();
     setError(null);
+    setNotice(null);
   }, [resetToIdle, stopInternal]);
 
   const speakWithWebSpeech = useCallback(
@@ -108,6 +112,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       // 再生対象の切替時は前の再生を止めてから開始する
       stopInternal();
       setError(null);
+      setNotice(null);
       setTitle(playTitle);
       setStatus("loading");
       setEngine(null);
@@ -130,14 +135,20 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         if (playTokenRef.current !== token) return;
         setEngine("gemini");
         setStatus("playing");
-      } catch {
+      } catch (err) {
         if (playTokenRef.current !== token) return;
         cleanupAudio();
-        // Gemini TTS 失敗 → Web Speech API フォールバック（REQUIREMENTS §3.5）
+        // Gemini TTS 失敗 → Web Speech API フォールバック（REQUIREMENTS §3.5）。
+        // 失敗理由（429・セッション切れ等）は握りつぶさず notice で可視化する
         try {
           speakWithWebSpeech(text, token);
           setEngine("webspeech");
           setStatus("playing");
+          setNotice(
+            err instanceof Error
+              ? err.message
+              : "Gemini TTS が利用できないため代替音声で再生しています。",
+          );
         } catch (fallbackErr) {
           resetToIdle();
           setError(
@@ -175,8 +186,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => stopInternal, [stopInternal]);
 
   const value = useMemo(
-    () => ({ status, title, engine, error, play, pause, resume, stop }),
-    [status, title, engine, error, play, pause, resume, stop],
+    () => ({ status, title, engine, error, notice, play, pause, resume, stop }),
+    [status, title, engine, error, notice, play, pause, resume, stop],
   );
 
   return (

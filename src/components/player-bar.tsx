@@ -6,7 +6,8 @@ export const ICON_BUTTON_CLASS =
   "flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(255,255,255,0.16)] text-on-dark transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:text-on-dark";
 
 export function PlayerBar() {
-  const { status, title, engine, error, pause, resume, stop } = usePlayer();
+  const { status, title, engine, error, notice, pause, resume, stop } =
+    usePlayer();
 
   if (status === "idle" && !error) return null;
 
@@ -15,7 +16,10 @@ export function PlayerBar() {
       <div className="flex h-16 items-center gap-md rounded-full bg-surface-elevated px-md">
         {error ? (
           <>
-            <p role="alert" className="px-sm text-caption-md text-warning">
+            <p
+              role="alert"
+              className="max-w-[480px] px-sm text-caption-md text-warning"
+            >
               {error}
             </p>
             <button
@@ -83,8 +87,13 @@ export function PlayerBar() {
                 {status === "loading" ? "音声を生成中…" : title}
               </span>
               {engine === "webspeech" && (
-                <span className="text-caption-sm text-mute-dark">
+                <span
+                  role="status"
+                  title={notice ?? undefined}
+                  className="max-w-[360px] truncate text-caption-sm text-mute-dark"
+                >
                   代替音声（ブラウザ読み上げ）
+                  {notice ? `｜${notice}` : ""}
                 </span>
               )}
             </div>

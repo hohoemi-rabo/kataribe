@@ -22,7 +22,7 @@ export function Header({ email, avatarUrl, games, selectedGameId }: HeaderProps)
     <header className="grid h-14 grid-cols-[1fr_auto_1fr] items-center bg-canvas px-lg">
       <Link
         href="/"
-        className="justify-self-start text-[18px] font-light leading-tight tracking-wordmark text-on-dark transition-colors hover:text-hover-cyan"
+        className="justify-self-start text-[18px] font-light leading-tight tracking-wordmark text-on-dark transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         KATARIBE
       </Link>
@@ -33,7 +33,7 @@ export function Header({ email, avatarUrl, games, selectedGameId }: HeaderProps)
             <Link
               key={href}
               href={href}
-              className="text-body-sm text-body-dark transition-colors hover:text-hover-cyan"
+              className="text-body-sm text-body-dark transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               {label}
             </Link>

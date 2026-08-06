@@ -5,7 +5,16 @@ compatibility_date = "2026-08-01"
 # secrets（`wrangler secret put` で設定。ローカルは .dev.vars）:
 #   GEMINI_API_KEY
 
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "7bd51887bb844a628434605634a7a1ea"
+
 [vars]
 SUPABASE_URL = "https://keenlwokwkmixnoczaqh.supabase.co"
 ALLOWED_EMAILS = "rabo.hohoemi@gmail.com"
+# カンマ区切りで複数オリジンを許可（Origin ヘッダーと完全一致・末尾スラッシュなし）
 ALLOWED_ORIGIN = "http://localhost:3000"
+# レート制限（JST 日次リセット）。調整はここを書き換えて deploy
+RATE_LIMIT_TRANSCRIBE = "50"
+RATE_LIMIT_SUMMARIZE = "10"
+RATE_LIMIT_TTS = "60"

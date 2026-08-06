@@ -16,6 +16,8 @@ export type CaptureState = "idle" | "capturing";
 type CaptureContextValue = {
   state: CaptureState;
   error: string | null;
+  /** 共有側からの停止など、エラーではないが伝えるべき状態変化の案内 */
+  notice: string | null;
   /** プレビュー表示用。各コンポーネントが自分の video 要素にアタッチする */
   stream: MediaStream | null;
   startCapture: () => Promise<void>;
@@ -36,6 +38,7 @@ export function CaptureProvider({ children }: { children: React.ReactNode }) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [state, setState] = useState<CaptureState>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const stopCapture = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -50,15 +53,22 @@ export function CaptureProvider({ children }: { children: React.ReactNode }) {
 
   const startCapture = useCallback(async () => {
     setError(null);
+    setNotice(null);
     try {
       const mediaStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
       });
       streamRef.current = mediaStream;
 
-      // ブラウザ側/OS側どちらから共有停止されても idle へ戻す
+      // ブラウザ側/OS側どちらから共有停止されても idle へ戻し、無言終了にしない
+      const handleTrackEnded = () => {
+        stopCapture();
+        setNotice(
+          "画面共有が終了しました。再開するには「キャプチャ開始」を押してください。",
+        );
+      };
       for (const track of mediaStream.getVideoTracks()) {
-        track.addEventListener("ended", stopCapture);
+        track.addEventListener("ended", handleTrackEnded);
       }
 
       const video = document.createElement("video");
@@ -71,8 +81,13 @@ export function CaptureProvider({ children }: { children: React.ReactNode }) {
       setStream(mediaStream);
       setState("capturing");
     } catch (err) {
-      // ユーザーがウィンドウ選択ダイアログをキャンセルしただけならエラー扱いしない
+      console.error("startCapture failed:", err);
+      // NotAllowedError はユーザーキャンセルと OS/ブラウザの許可ブロックが区別できないため、
+      // どちらでも案内を出す（ブロック時に無反応になるのを防ぐ）
       if (err instanceof DOMException && err.name === "NotAllowedError") {
+        setError(
+          "画面共有が許可されませんでした。もう一度お試しください。OSやブラウザの画面収録許可も確認してください。",
+        );
         return;
       }
       stopCapture();
@@ -92,8 +107,16 @@ export function CaptureProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ state, error, stream, startCapture, stopCapture, captureFrame }),
-    [state, error, stream, startCapture, stopCapture, captureFrame],
+    () => ({
+      state,
+      error,
+      notice,
+      stream,
+      startCapture,
+      stopCapture,
+      captureFrame,
+    }),
+    [state, error, notice, stream, startCapture, stopCapture, captureFrame],
   );
 
   return (

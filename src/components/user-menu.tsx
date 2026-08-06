@@ -31,7 +31,7 @@ export function UserMenu({ email, avatarUrl }: UserMenuProps) {
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="アカウントメニュー"
         aria-expanded={isOpen}
-        className="block h-8 w-8 overflow-hidden rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="block h-8 w-8 overflow-hidden rounded-full transition hover:ring-2 hover:ring-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         {avatarUrl ? (
           <Image src={avatarUrl} alt="" width={32} height={32} />

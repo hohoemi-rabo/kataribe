@@ -14,7 +14,7 @@ REQUIREMENTS.md §8 の実装チケットを個別ファイルに分割したも
 | 07 | [07-worker-tts.md](./07-worker-tts.md) | Worker: tts + 音声再生 | 完了 |
 | 08 | [08-sections.md](./08-sections.md) | セクション一覧 | 完了 |
 | 09 | [09-worker-summarize.md](./09-worker-summarize.md) | Worker: summarize + あらすじ画面 | 完了 |
-| 10 | [10-polish.md](./10-polish.md) | 仕上げ（レート制限・エラーハンドリング） | 未着手 |
+| 10 | [10-polish.md](./10-polish.md) | 仕上げ（レート制限・エラーハンドリング） | 進行中 |
 
 - 状態は「未着手 / 進行中 / 完了」。チケットの着手・完了時にこの表も更新する
 - チケット03・04・06 は `getDisplayMedia` を含むため **ブラウザ実機での動作確認が必須**（自動テスト不可）

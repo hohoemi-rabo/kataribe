@@ -3,7 +3,7 @@ import { workerFetch } from "@/lib/worker-client";
 export const SECTION_IMAGE_JPEG_QUALITY = 0.92;
 
 /** canvas → JPEG の生 base64（data URL プレフィックスなし） */
-export function canvasToJpegBase64(canvas: HTMLCanvasElement): string {
+function canvasToJpegBase64(canvas: HTMLCanvasElement): string {
   const dataUrl = canvas.toDataURL("image/jpeg", SECTION_IMAGE_JPEG_QUALITY);
   return dataUrl.slice(dataUrl.indexOf(",") + 1);
 }

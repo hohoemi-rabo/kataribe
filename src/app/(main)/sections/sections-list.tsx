@@ -101,9 +101,9 @@ export function SectionsList({ sections }: { sections: SectionWithThumb[] }) {
           return (
             <li
               key={section.id}
-              className="flex flex-col gap-md rounded-md bg-surface-card p-lg transition-colors hover:bg-surface-hover sm:flex-row sm:gap-lg"
+              className="flex flex-col gap-md rounded-md bg-surface-card p-lg transition-colors hover:bg-surface-hover lg:flex-row lg:gap-lg"
             >
-              <div className="w-full shrink-0 sm:w-[240px]">
+              <div className="w-full shrink-0 lg:w-[240px]">
                 <div className="flex aspect-video items-center justify-center overflow-hidden rounded-md bg-[#0d0d0e]">
                   {section.thumbUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -192,7 +192,7 @@ export function SectionsList({ sections }: { sections: SectionWithThumb[] }) {
                           setEditingId(section.id);
                           setEditValue(section.content);
                         }}
-                        className="text-caption-md text-body-dark transition-colors hover:text-hover-cyan"
+                        className="text-caption-md text-body-dark transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
                         編集
                       </button>
@@ -202,7 +202,7 @@ export function SectionsList({ sections }: { sections: SectionWithThumb[] }) {
                           setError(null);
                           setDeleteTarget(section);
                         }}
-                        className="text-caption-md text-warning transition-colors hover:text-hover-cyan"
+                        className="text-caption-md text-warning transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
                         削除
                       </button>

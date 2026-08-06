@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCaptureContext } from "@/lib/capture/capture-context";
 import { cropCanvas, type RelativeRect } from "@/lib/capture/region";
 import { usePlayer } from "@/lib/player/player-context";
@@ -21,6 +21,8 @@ type LatestResult = {
   imageDataUrl: string;
   /** 保存完了時に採番が入る。それまでは null（保存中） */
   seq: number | null;
+  /** 保存が失敗したまま終わった場合 true（「保存中…」を出し続けない） */
+  saveFailed: boolean;
   createdAt: string;
 };
 
@@ -33,12 +35,19 @@ type MainScreenProps = {
 export const MANUAL_READ_ID = "manual";
 
 export function MainScreen({ gameId, presets }: MainScreenProps) {
-  const { captureFrame } = useCaptureContext();
+  const { state, captureFrame } = useCaptureContext();
   const { play } = usePlayer();
   const [readingPresetId, setReadingPresetId] = useState<string | null>(null);
   const [latest, setLatest] = useState<LatestResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  // 読み取り中に共有が停止されたとき、「読み取り中…」ボタン表示を残さない
+  useEffect(() => {
+    if (state !== "capturing") {
+      setReadingPresetId(null);
+    }
+  }, [state]);
 
   /** 読み取りの共通コア（プリセット / 手動どちらもここに合流する） */
   const runRead = async (
@@ -63,6 +72,7 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
         content: text,
         imageDataUrl,
         seq: null,
+        saveFailed: false,
         createdAt: new Date().toISOString(),
       });
 
@@ -84,12 +94,20 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
       const result = await createSection(gameId, presetName, text, imagePath);
       if (result.error || !result.section) {
         setError(result.error ?? "セクションの保存に失敗しました。");
+        setLatest((current) =>
+          current ? { ...current, saveFailed: true } : current,
+        );
         return;
       }
       const savedSeq = result.section.seq;
       setLatest((current) => (current ? { ...current, seq: savedSeq } : current));
     } catch (err) {
       setError(err instanceof Error ? err.message : "読み取りに失敗しました。");
+      setLatest((current) =>
+        current && current.seq === null
+          ? { ...current, saveFailed: true }
+          : current,
+      );
     } finally {
       setReadingPresetId(null);
     }
@@ -101,6 +119,7 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
       const frame = captureFrame();
       void runRead(preset.id, preset.name, cropCanvas(frame, preset));
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : "読み取りに失敗しました。");
     }
   };
@@ -110,6 +129,7 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
     try {
       void runRead(MANUAL_READ_ID, "manual", cropCanvas(frame, rect));
     } catch (err) {
+      setNotice(null);
       setError(err instanceof Error ? err.message : "読み取りに失敗しました。");
     }
   };
@@ -132,10 +152,14 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
           {error}
         </p>
       )}
-      {notice && <p className="text-caption-md text-warning">{notice}</p>}
+      {notice && (
+        <p role="status" className="text-caption-md text-warning">
+          {notice}
+        </p>
+      )}
 
       {latest && (
-        <div className="flex flex-col gap-md rounded-md bg-surface-card p-lg sm:flex-row">
+        <div className="flex flex-col gap-md rounded-md bg-surface-card p-lg lg:flex-row">
           {/* eslint-disable-next-line @next/next/no-img-element -- 直近の切り抜き画像（ローカル data URL） */}
           <img
             src={latest.imageDataUrl}
@@ -144,9 +168,19 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
           />
           <div className="flex min-w-0 flex-col gap-sm">
             <div className="flex items-center gap-sm">
-              <span className="rounded-full bg-primary px-[10px] py-xxs text-caption-sm text-on-primary">
-                {latest.seq !== null ? `#${latest.seq}` : "保存中…"}
-              </span>
+              {latest.seq !== null ? (
+                <span className="rounded-full bg-primary px-[10px] py-xxs text-caption-sm text-on-primary">
+                  #{latest.seq}
+                </span>
+              ) : latest.saveFailed ? (
+                <span className="rounded-full border border-warning px-[10px] py-xxs text-caption-sm text-warning">
+                  保存失敗
+                </span>
+              ) : (
+                <span className="rounded-full bg-primary px-[10px] py-xxs text-caption-sm text-on-primary">
+                  保存中…
+                </span>
+              )}
               <span className="text-caption-md text-mute-dark">
                 {formatDateTimeJa(latest.createdAt)}・{latest.presetName}
               </span>

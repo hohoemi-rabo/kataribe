@@ -51,18 +51,28 @@ export async function createGame(
   return {};
 }
 
-export async function selectGame(gameId: string) {
+export async function selectGame(gameId: string): Promise<ActionState> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("games")
     .select("id")
     .eq("id", gameId)
     .maybeSingle();
 
-  // 存在しない・所有していない ID は無視（RLS で他人の行は見えない）
-  if (!data) return;
+  if (error) {
+    return {
+      error: "ゲームの切り替えに失敗しました。時間をおいて再度お試しください。",
+    };
+  }
+  // 存在しない・所有していない ID（RLS で他人の行は見えない）
+  if (!data) {
+    return {
+      error: "このゲームが見つかりません。画面を再読み込みしてください。",
+    };
+  }
 
   await setSelectedGameCookie(gameId);
+  return {};
 }
 
 export async function deleteGame(gameId: string): Promise<ActionState> {

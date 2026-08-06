@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useCaptureContext } from "@/lib/capture/capture-context";
 
 export function CapturePanel() {
-  const { state, error, stream, startCapture, stopCapture } =
+  const { state, error, notice, stream, startCapture, stopCapture } =
     useCaptureContext();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const isCapturing = state === "capturing";
@@ -41,8 +41,13 @@ export function CapturePanel() {
               キャプチャ開始
             </button>
             {error && (
-              <p role="alert" className="text-caption-md text-warning">
+              <p role="alert" className="px-lg text-caption-md text-warning">
                 {error}
+              </p>
+            )}
+            {notice && (
+              <p role="status" className="px-lg text-caption-md text-mute-dark">
+                {notice}
               </p>
             )}
           </div>
@@ -51,7 +56,7 @@ export function CapturePanel() {
           <span className="absolute right-md top-md flex items-center gap-xs rounded-full border border-hairline-dark bg-surface-card px-sm py-xxs text-caption-sm text-on-dark">
             <span
               aria-hidden="true"
-              className="h-2 w-2 rounded-full bg-recording animate-recording-blink"
+              className="h-2 w-2 rounded-full bg-recording animate-recording-blink motion-reduce:animate-none"
             />
             キャプチャ中
           </span>

@@ -74,7 +74,7 @@ export function PresetList({ games, presets }: PresetListProps) {
           範囲の再登録はキャプチャ中のみ可能です（メイン画面でキャプチャを開始したまま設定を開いてください）
         </p>
       )}
-      {error && (
+      {error && !deleteTarget && (
         <p role="alert" className="text-caption-md text-warning">
           {error}
         </p>
@@ -145,7 +145,7 @@ export function PresetList({ games, presets }: PresetListProps) {
                               setRenameId(preset.id);
                               setRenameValue(preset.name);
                             }}
-                            className="text-caption-md text-body-dark transition-colors hover:text-hover-cyan"
+                            className="text-caption-md text-body-dark transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                           >
                             名前変更
                           </button>
@@ -154,7 +154,7 @@ export function PresetList({ games, presets }: PresetListProps) {
                             onClick={() => handleReRegister(preset)}
                             disabled={!isCapturing}
                             title={!isCapturing ? "キャプチャ中のみ" : undefined}
-                            className="text-caption-md text-body-dark transition-colors hover:text-hover-cyan disabled:text-mute-dark disabled:hover:text-mute-dark"
+                            className="text-caption-md text-body-dark transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:text-mute-dark disabled:hover:text-mute-dark"
                           >
                             範囲を再登録
                           </button>
@@ -164,7 +164,7 @@ export function PresetList({ games, presets }: PresetListProps) {
                               setError(null);
                               setDeleteTarget(preset);
                             }}
-                            className="text-caption-md text-warning transition-colors hover:text-hover-cyan"
+                            className="text-caption-md text-warning transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                           >
                             削除
                           </button>
@@ -193,6 +193,7 @@ export function PresetList({ games, presets }: PresetListProps) {
           titleId="delete-preset-title"
           title={`「${deleteTarget.name}」を削除しますか？`}
           description="このプリセットを削除します。登録済みのセクションには影響しません。"
+          error={error}
           isPending={isPending}
           onCancel={() => setDeleteTarget(null)}
           onConfirm={handleDelete}

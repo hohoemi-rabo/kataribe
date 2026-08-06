@@ -12,6 +12,7 @@ type GameSwitcherProps = {
 
 export function GameSwitcher({ games, selectedGameId }: GameSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -30,7 +31,7 @@ export function GameSwitcher({ games, selectedGameId }: GameSwitcherProps) {
     return (
       <Link
         href="/settings"
-        className="text-caption-md text-mute-dark transition-colors hover:text-hover-cyan"
+        className="text-caption-md text-mute-dark transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         ゲーム未登録 — 設定で登録
       </Link>
@@ -42,7 +43,13 @@ export function GameSwitcher({ games, selectedGameId }: GameSwitcherProps) {
   const handleSelect = (gameId: string) => {
     setIsOpen(false);
     if (gameId !== selectedGameId) {
-      startTransition(() => selectGame(gameId));
+      setError(null);
+      startTransition(async () => {
+        const result = await selectGame(gameId);
+        if (result.error) {
+          setError(result.error);
+        }
+      });
     }
   };
 
@@ -83,7 +90,7 @@ export function GameSwitcher({ games, selectedGameId }: GameSwitcherProps) {
               key={game.id}
               type="button"
               onClick={() => handleSelect(game.id)}
-              className="flex w-full items-center gap-sm px-md py-xs text-left text-body-sm text-body-dark transition-colors hover:text-hover-cyan"
+              className="flex w-full items-center gap-sm px-md py-xs text-left text-body-sm text-body-dark transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <span
                 aria-hidden="true"
@@ -95,6 +102,14 @@ export function GameSwitcher({ games, selectedGameId }: GameSwitcherProps) {
             </button>
           ))}
         </div>
+      )}
+      {error && !isOpen && (
+        <p
+          role="alert"
+          className="absolute left-1/2 top-full z-10 mt-xs w-max max-w-[320px] -translate-x-1/2 rounded-md bg-surface-elevated px-md py-xs text-caption-md text-warning"
+        >
+          {error}
+        </p>
       )}
     </div>
   );

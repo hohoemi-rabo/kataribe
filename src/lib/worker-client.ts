@@ -23,8 +23,19 @@ export async function workerFetch(path: string, body: unknown): Promise<Response
         Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify(body),
+      // Gemini の生成待ちを考慮した上限。ハング時に UI が固まり続けるのを防ぐ
+      signal: AbortSignal.timeout(90_000),
     });
-  } catch {
+  } catch (err) {
+    console.error(`workerFetch failed (${path}):`, err);
+    if (
+      err instanceof DOMException &&
+      (err.name === "TimeoutError" || err.name === "AbortError")
+    ) {
+      throw new Error(
+        "Worker への応答がタイムアウトしました。時間をおいて再度お試しください。",
+      );
+    }
     throw new Error(
       "Worker に接続できませんでした。ネットワークと Worker の状態を確認してください。",
     );
