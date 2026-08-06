@@ -46,18 +46,20 @@ cd worker && npx wrangler deploy # デプロイ（WSL 側で wrangler ログイ�
 
 テストランナーは未導入。
 
-## 実装済みの基盤（チケット01〜07 完了時点の確定事項）
+## 実装済みの基盤（チケット01〜10 すべて完了 = MVP 本番稼働中）
 
 外部リソース:
 
 - **Supabase プロジェクト**: `kataribe`（ref: `keenlwokwkmixnoczaqh`、ap-northeast-1）。同アカウントに別プロジェクト `labocore` があるため**混同しないこと**
+- **本番 URL（Vercel）**: `https://kataribe-nine.vercel.app`（プロジェクト `kataribe`、CLI でリンク済み。環境変数4つ設定済み）。Supabase の Site URL / Redirect URLs も本番設定済み
 - **Worker デプロイ済み**: `https://kataribe-worker.rabo-hohoemi.workers.dev`（`NEXT_PUBLIC_WORKER_URL`）。secret `GEMINI_API_KEY` 設定済み。ローカル実行時は `worker/.dev.vars`
+- **レート制限（Worker/KV）**: JST 日次リセット。transcribe 50 / summarize 10 / tts 60 回/日。`worker/wrangler.toml` の `RATE_LIMIT_*` vars で調整して deploy。カウンタは KV `RATE_LIMIT_KV`（キー `rl:<email>:<endpoint>:<日付>`）
 - **Gemini モデル（2026-08 に最新確認済み）**: transcribe = `gemini-3.6-flash`（generateContent）/ TTS = `gemini-3.1-flash-tts-preview`（**Interactions API** 経由、ボイス `Sulafat`、PCM→WAV 変換は `worker/src/tts.ts`）
 - **Storage**: 非公開バケット `sections`（パス `<user_id>/<uuid>.jpg`、本人フォルダのみのポリシー）
 
 実装パターン（勝手に別方式へ変えない）:
 
-- **Worker 認証**: jose + リモート JWKS（ES256）+ `ALLOWED_EMAILS` 照合（`worker/src/auth.ts`）。CORS は `ALLOWED_ORIGIN`（現在 localhost:3000）のみ
+- **Worker 認証**: jose + リモート JWKS（ES256）+ `ALLOWED_EMAILS` 照合（`worker/src/auth.ts`）。CORS は `ALLOWED_ORIGIN`（カンマ区切り: localhost:3000 + 本番ドメイン、Origin 完全一致エコー）
 - **選択中ゲーム**: cookie `kataribe-selected-game` + Server Action 方式（localStorage は不採用）。解決は `src/lib/games/queries.ts` の `getSelectedGame()`（cache 済み）
 - **キャプチャ状態**: `CaptureProvider`（`(main)/layout.tsx` 直下・DOM 外 video 保持）。ページ遷移してもストリーム維持
 - **再生状態**: `PlayerProvider` + `PlayerBar`（グローバル・下部固定）。`play(title, text)` が Gemini TTS → Web Speech フォールバックまで内包。チケット08（再読み上げ）・09（あらすじ読み上げ）は `usePlayer().play()` を呼ぶだけでよい
