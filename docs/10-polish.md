@@ -41,8 +41,9 @@
 
 ### デプロイ
 
-- [ ] Vercel へデプロイ（環境変数設定、Supabase の Auth リダイレクト URL 追加）
-- [ ] Worker を本番デプロイ（secrets 設定、CORS を本番オリジンに）
+- [x] Vercel へデプロイ（プロジェクト `kataribe`、本番 URL: `https://kataribe-nine.vercel.app`。環境変数4つ設定済み）
+- [ ] Supabase の Auth リダイレクト URL 追加（ダッシュボードでの手動設定。Site URL + Redirect URLs）
+- [x] Worker を本番デプロイ（secrets 設定済み、CORS を `localhost:3000 + kataribe-nine.vercel.app` に）
 - [ ] 本番 URL でゲーム実機の通常フロー（キャプチャ → 読んで → 音声 → あらすじ)を一通り確認
 
 ### 動作確認

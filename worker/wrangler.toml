@@ -13,7 +13,7 @@ id = "7bd51887bb844a628434605634a7a1ea"
 SUPABASE_URL = "https://keenlwokwkmixnoczaqh.supabase.co"
 ALLOWED_EMAILS = "rabo.hohoemi@gmail.com"
 # カンマ区切りで複数オリジンを許可（Origin ヘッダーと完全一致・末尾スラッシュなし）
-ALLOWED_ORIGIN = "http://localhost:3000"
+ALLOWED_ORIGIN = "http://localhost:3000,https://kataribe-nine.vercel.app"
 # レート制限（JST 日次リセット）。調整はここを書き換えて deploy
 RATE_LIMIT_TRANSCRIBE = "50"
 RATE_LIMIT_SUMMARIZE = "10"
