@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AutoPlayToggle } from "@/components/autoplay-toggle";
 import { PresetModal } from "@/components/preset-modal";
 import { useCaptureContext } from "@/lib/capture/capture-context";
 import type { RelativeRect } from "@/lib/capture/region";
@@ -95,6 +96,10 @@ export function PresetPanel({
       >
         範囲を登録
       </button>
+
+      <div className="pt-xs">
+        <AutoPlayToggle />
+      </div>
 
       {!isCapturing && (
         <p className="text-caption-sm text-mute-dark">

@@ -60,6 +60,7 @@ cd worker && npx wrangler deploy # デプロイ（WSL 側で wrangler ログイ�
 - **選択中ゲーム**: cookie `kataribe-selected-game` + Server Action 方式（localStorage は不採用）。解決は `src/lib/games/queries.ts` の `getSelectedGame()`（cache 済み）
 - **キャプチャ状態**: `CaptureProvider`（`(main)/layout.tsx` 直下・DOM 外 video 保持）。ページ遷移してもストリーム維持
 - **再生状態**: `PlayerProvider` + `PlayerBar`（グローバル・下部固定）。`play(title, text)` が Gemini TTS → Web Speech フォールバックまで内包し、フォールバック理由（429 等）は `notice` として player-bar に表示される。読み上げが必要な機能は `usePlayer().play()` を呼ぶだけでよい
+- **再生設定（2026-08 追加）**: デフォルト再生速度（設定画面で選択）と読み取り後の自動再生オン/オフ（REQUIREMENTS §3.5 ① の自動再生を任意化。メイン画面 `AutoPlayToggle` / 設定画面で切替）は localStorage（`kataribe-player-speed` / `kataribe-player-autoplay`）に永続化し `PlayerProvider` が保持。player-bar の速度ボタンはその場かぎりの一時変更でリロード時にデフォルトへ戻る。サーバーは値を使わないため cookie 方式は不採用
 - **Worker 呼び出し**: `src/lib/worker-client.ts` の `workerFetch(path, body)` を共通利用（JWT 付与 + 90秒タイムアウト込み）。Worker のエラーは JSON body `{ error }` の日本語メッセージがそのまま画面に出る設計
 - **データ層の規約**: 各機能は `src/lib/<機能>/` に `queries.ts`（React `cache()`・エラー時 throw）+ `actions.ts`（`"use server"`・`{ error?: string }` 返却・throw しない・`.eq("id", x)` のみで RLS 任せ・成功時 `revalidatePath("/", "layout")`）+ 必要なら `client.ts`（Worker 呼び出し）
 - **セクション採番**: `src/lib/sections/actions.ts` の `createSection()` が `max(seq)+1` を実施。削除しても `seq` は振り直さない（欠番許容）

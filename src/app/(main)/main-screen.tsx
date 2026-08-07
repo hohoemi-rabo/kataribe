@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCaptureContext } from "@/lib/capture/capture-context";
 import { cropCanvas, type RelativeRect } from "@/lib/capture/region";
 import { usePlayer } from "@/lib/player/player-context";
@@ -34,13 +34,22 @@ type MainScreenProps = {
 /** 手動読み取り中を表す readingPresetId（preset の id は uuid なので衝突しない） */
 export const MANUAL_READ_ID = "manual";
 
+/** player-bar に表示する読み上げ対象名（手動読み取りは "manual" で保存される） */
+const speakTitle = (presetName: string) =>
+  presetName === "manual" ? "手動範囲" : presetName;
+
 export function MainScreen({ gameId, presets }: MainScreenProps) {
   const { state, captureFrame } = useCaptureContext();
-  const { play } = usePlayer();
+  const { play, autoPlay } = usePlayer();
   const [readingPresetId, setReadingPresetId] = useState<string | null>(null);
   const [latest, setLatest] = useState<LatestResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // テキスト化完了（数秒後）の時点でのトグル状態を尊重するため ref で参照する
+  const autoPlayRef = useRef(autoPlay);
+  useEffect(() => {
+    autoPlayRef.current = autoPlay;
+  }, [autoPlay]);
 
   // 読み取り中に共有が停止されたとき、「読み取り中…」ボタン表示を残さない
   useEffect(() => {
@@ -76,8 +85,10 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
         createdAt: new Date().toISOString(),
       });
 
-      // テキスト化直後の自動再生（REQUIREMENTS §3.5 ①）
-      void play(presetName === "manual" ? "手動範囲" : presetName, text);
+      // テキスト化直後の自動再生（REQUIREMENTS §3.5 ①）。オフ時は「読み上げ」ボタンで手動再生
+      if (autoPlayRef.current) {
+        void play(speakTitle(presetName), text);
+      }
 
       // 画像保存は失敗してもテキストを失わない（image_path: null で退避保存）
       let imagePath: string | null = null;
@@ -184,6 +195,15 @@ export function MainScreen({ gameId, presets }: MainScreenProps) {
               <span className="text-caption-md text-mute-dark">
                 {formatDateTimeJa(latest.createdAt)}・{latest.presetName}
               </span>
+              <button
+                type="button"
+                onClick={() =>
+                  void play(speakTitle(latest.presetName), latest.content)
+                }
+                className="ml-auto h-9 shrink-0 rounded-full border border-hairline-dark px-md text-button-md text-on-dark transition-colors hover:border-hover-cyan hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                読み上げ
+              </button>
             </div>
             <p className="max-w-[640px] whitespace-pre-wrap text-body-md text-body-dark">
               {latest.content}

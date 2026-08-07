@@ -6,8 +6,18 @@ export const ICON_BUTTON_CLASS =
   "flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(255,255,255,0.16)] text-on-dark transition-colors hover:text-hover-cyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:text-on-dark";
 
 export function PlayerBar() {
-  const { status, title, engine, error, notice, pause, resume, stop } =
-    usePlayer();
+  const {
+    status,
+    title,
+    engine,
+    error,
+    notice,
+    speed,
+    cycleSpeed,
+    pause,
+    resume,
+    stop,
+  } = usePlayer();
 
   if (status === "idle" && !error) return null;
 
@@ -79,6 +89,19 @@ export function PlayerBar() {
                   <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                     <rect x="3" y="3" width="10" height="10" fill="currentColor" />
                   </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={cycleSpeed}
+                  aria-label={`再生速度を変更（現在 ${speed}倍）`}
+                  title={
+                    engine === "webspeech"
+                      ? "代替音声では次の再生から反映されます"
+                      : undefined
+                  }
+                  className={`${ICON_BUTTON_CLASS} text-caption-sm`}
+                >
+                  {speed}x
                 </button>
               </div>
             )}

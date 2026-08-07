@@ -14,6 +14,22 @@ import { fetchTtsAudio } from "@/lib/tts/client";
 export type PlayerStatus = "idle" | "loading" | "playing" | "paused";
 export type PlayerEngine = "gemini" | "webspeech";
 
+export const PLAYBACK_SPEEDS = [0.75, 1, 1.25, 1.5, 2] as const;
+export type PlaybackSpeed = (typeof PLAYBACK_SPEEDS)[number];
+
+const SPEED_STORAGE_KEY = "kataribe-player-speed";
+const AUTOPLAY_STORAGE_KEY = "kataribe-player-autoplay";
+
+// デフォルト速度（設定画面で選択）は純粋にクライアント側の設定のため localStorage で永続化する
+// （cookie + Server Action 方式はサーバーが値を知る必要がある場合のみ）
+function loadStoredSpeed(): PlaybackSpeed {
+  if (typeof window === "undefined") return 1;
+  const raw = Number(window.localStorage.getItem(SPEED_STORAGE_KEY));
+  return (PLAYBACK_SPEEDS as readonly number[]).includes(raw)
+    ? (raw as PlaybackSpeed)
+    : 1;
+}
+
 type PlayerContextValue = {
   status: PlayerStatus;
   /** 現在の読み上げ対象名（player-bar に表示） */
@@ -22,6 +38,17 @@ type PlayerContextValue = {
   error: string | null;
   /** Web Speech フォールバックに切り替わった理由（429・セッション切れ等）。再生は継続する */
   notice: string | null;
+  /** 現在の再生速度（Gemini 再生中は即時反映。Web Speech は次の再生から） */
+  speed: PlaybackSpeed;
+  /** 再生バーからの一時変更。永続化せず、リロードで defaultSpeed に戻る */
+  cycleSpeed: () => void;
+  /** 設定画面で選んだデフォルト速度（localStorage に永続化） */
+  defaultSpeed: PlaybackSpeed;
+  /** デフォルト速度を保存し、現在の再生にも即適用する */
+  setDefaultSpeed: (speed: PlaybackSpeed) => void;
+  /** 読み取り完了時に自動で読み上げるか（メイン画面・設定画面で共有、localStorage に永続化） */
+  autoPlay: boolean;
+  setAutoPlay: (on: boolean) => void;
   play: (title: string, text: string) => Promise<void>;
   pause: () => void;
   resume: () => void;
@@ -45,6 +72,23 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [engine, setEngine] = useState<PlayerEngine | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // SSR では localStorage を読めないため 1 で初期化し、マウント後に保存値を反映する
+  // （lazy initializer で読むと設定画面の aria-pressed が hydration 不一致になる）
+  const [speed, setSpeed] = useState<PlaybackSpeed>(1);
+  const [defaultSpeed, setDefaultSpeedState] = useState<PlaybackSpeed>(1);
+  const [autoPlay, setAutoPlayState] = useState(true);
+  // play/speakWithWebSpeech のコールバックを速度変更で作り直さないための参照
+  const speedRef = useRef<PlaybackSpeed>(1);
+
+  useEffect(() => {
+    const stored = loadStoredSpeed();
+    speedRef.current = stored;
+    setSpeed(stored);
+    setDefaultSpeedState(stored);
+    if (window.localStorage.getItem(AUTOPLAY_STORAGE_KEY) === "0") {
+      setAutoPlayState(false);
+    }
+  }, []);
 
   const cleanupAudio = useCallback(() => {
     if (audioRef.current) {
@@ -89,7 +133,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         .getVoices()
         .find((voice) => voice.lang.startsWith("ja"));
       if (jaVoice) utterance.voice = jaVoice;
-      utterance.rate = 0.95;
+      // 0.95 が等速時の基準（自然に聞こえる速さ）。発話開始後は変更できない
+      utterance.rate = 0.95 * speedRef.current;
       utterance.onend = () => {
         if (playTokenRef.current === token) resetToIdle();
       };
@@ -124,6 +169,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         const url = URL.createObjectURL(blob);
         objectUrlRef.current = url;
         const audio = new Audio(url);
+        audio.playbackRate = speedRef.current;
         audioRef.current = audio;
         audio.onended = () => {
           if (playTokenRef.current === token) {
@@ -162,6 +208,42 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     [cleanupAudio, resetToIdle, speakWithWebSpeech, stopInternal],
   );
 
+  // Gemini（WAV）再生中は即時反映。Web Speech は発話中の変更不可のため次回から
+  const applySpeed = useCallback((next: PlaybackSpeed) => {
+    speedRef.current = next;
+    setSpeed(next);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = next;
+    }
+  }, []);
+
+  const cycleSpeed = useCallback(() => {
+    const index = PLAYBACK_SPEEDS.indexOf(speedRef.current);
+    applySpeed(PLAYBACK_SPEEDS[(index + 1) % PLAYBACK_SPEEDS.length]);
+  }, [applySpeed]);
+
+  const setDefaultSpeed = useCallback(
+    (next: PlaybackSpeed) => {
+      setDefaultSpeedState(next);
+      try {
+        window.localStorage.setItem(SPEED_STORAGE_KEY, String(next));
+      } catch {
+        // プライベートモード等で保存できなくても再生自体は継続する
+      }
+      applySpeed(next);
+    },
+    [applySpeed],
+  );
+
+  const setAutoPlay = useCallback((on: boolean) => {
+    setAutoPlayState(on);
+    try {
+      window.localStorage.setItem(AUTOPLAY_STORAGE_KEY, on ? "1" : "0");
+    } catch {
+      // プライベートモード等で保存できなくても動作は継続する
+    }
+  }, []);
+
   const pause = useCallback(() => {
     if (status !== "playing") return;
     if (engine === "webspeech") {
@@ -186,8 +268,40 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => stopInternal, [stopInternal]);
 
   const value = useMemo(
-    () => ({ status, title, engine, error, notice, play, pause, resume, stop }),
-    [status, title, engine, error, notice, play, pause, resume, stop],
+    () => ({
+      status,
+      title,
+      engine,
+      error,
+      notice,
+      speed,
+      cycleSpeed,
+      defaultSpeed,
+      setDefaultSpeed,
+      autoPlay,
+      setAutoPlay,
+      play,
+      pause,
+      resume,
+      stop,
+    }),
+    [
+      status,
+      title,
+      engine,
+      error,
+      notice,
+      speed,
+      cycleSpeed,
+      defaultSpeed,
+      setDefaultSpeed,
+      autoPlay,
+      setAutoPlay,
+      play,
+      pause,
+      resume,
+      stop,
+    ],
   );
 
   return (
